@@ -211,7 +211,7 @@ if (!function_exists('ur_option_help')) {
             'compressLevel'  => 'Set the zlib compression level from 0 (none) to 9 (maximum) (--compress-level=N). Leave blank for rsync\'s default level. Only matters when Compress is on.',
             'modifyWindow'   => 'Allow this many seconds of tolerance when comparing modification times (--modify-window=SECONDS). Useful for FAT filesystems with coarse timestamps. Leave blank for exact matching (0 seconds).',
             'statsMode'      => 'Choose detailed statistics for Normal and Verbose logs and for dry runs: Current (--info=stats2) keeps existing output; Older rsync (--stats) works with older peers such as rsync 3.0.9; No explicit detailed stats sends neither flag. Overall progress (--info=progress2) remains enabled. Verbose (-vv) may still print statistics on its own. An older receiving rsync may also require turning off Create destination path (--mkpath).',
-            'protocol'       => 'Force a specific rsync protocol version (--protocol=N). Leave blank for rsync\'s default negotiation; only set this when the remote peer requires a specific version.',
+            'protocol'       => 'Cap the rsync protocol version at N, from 20 to 32 (--protocol=N). Leave blank normally: rsync already negotiates the highest version both sides support, so set this only to work around a peer that misbehaves at that version. Over SSH or rsync daemon, Preserve ACLs and Preserve extended attributes need 30 or higher.',
         ];
     }
 }

@@ -221,6 +221,33 @@ final class HandlerTest extends TestCase
         $this->assertSame('31', Config::load()['global']['defaultRsyncOptions']['protocol']);
     }
 
+    /**
+     * The numeric checks live in Job::validateRsyncOptions so the global-only
+     * save path runs them too; they used to run only inside Job::validate.
+     */
+    public function testSaveConfigRejectsAnInvalidGlobalNumericOptionOnAGlobalOnlySave(): void
+    {
+        foreach (['protocol' => ['abc', '031', '19'], 'compressLevel' => ['abc']] as $key => $values) {
+            foreach ($values as $value) {
+                $_POST = [
+                    'action'     => 'saveConfig',
+                    'csrf_token' => 'test-token',
+                    'global'     => ['defaultRsyncOptions' => [$key => $value]],
+                ];
+                [$body, $code] = $this->runCapture(fn() => ur_action_save_config());
+                $this->assertSame(422, $code, "$key=$value " . json_encode($body));
+                $this->assertSame('', Config::load()['global']['defaultRsyncOptions'][$key] ?? 'MISSING');
+            }
+        }
+
+        // Saved with a warning: a LOCAL job inheriting these defaults runs fine.
+        $_POST['global']['defaultRsyncOptions'] = ['protocol' => '29', 'acls' => '1'];
+        [$body, $code] = $this->runCapture(fn() => ur_action_save_config());
+        $this->assertSame(200, $code, json_encode($body));
+        $this->assertNotEmpty(array_filter($body['warnings'] ?? [], static fn($e) => str_contains($e, '-A')));
+        $this->assertSame('29', Config::load()['global']['defaultRsyncOptions']['protocol']);
+    }
+
     public function testSaveConfigNestedFormRoundTrip(): void
     {
         // Simulate exactly the nested POST the form produces.
